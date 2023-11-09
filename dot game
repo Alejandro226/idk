@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dot Game</title>
+  <style>
+    canvas {
+      background-color: black;
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <div id="startMenu" style="position: absolute; top: 100px; left: 300px; background-color: rgba(0, 0, 0, 0.5); padding: 20px; border: 2px solid white; border-radius: 10px;">
+    <h1 style="color: white; text-align: center;">Dot Game</h1>
+    <button onclick="startGame()" style="display: block; margin: 0 auto;">Start Game</button>
+  </div>
+
+  <script>
+    function startGame() {
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      const startMenu = document.getElementById('startMenu');
+
+      const DOT_RADIUS = 5; // Smaller starting dot
+      const PLAYER_RADIUS = 20;
+      const DOT_SPEED = 2;
+      const DOT_COUNT = 50;
+
+      const dots = [];
+      const player = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        radius: PLAYER_RADIUS,
+      };
+
+      function isCollision(dotRadius) {
+        return player.radius > dotRadius;
+      }
+
+      function drawPlayer() {
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      function drawDot(dot) {
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
+        ctx.fillStyle = dot.color;
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      function update() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw and update player
+        drawPlayer();
+
+        // Check for collisions
+        for (let i = dots.length - 1; i >= 0; i--) {
+          const dot = dots[i];
+          if (isCollision(dot.radius)) {
+            if (player.radius > 5) {
+              dots.splice(i, 1);
+              player.radius += 1;
+            }
+          } else if (player.radius < dot.radius) {
+            // Player loses if they touch a larger dot
+            gameOver();
+            return;
+          }
+        }
+
+        // Draw and update dots
+        for (const dot of dots) {
+          drawDot(dot);
+          dot.x += Math.random() * 2 * DOT_SPEED - DOT_SPEED;
+          dot.y += Math.random() * 2 * DOT_SPEED - DOT_SPEED;
+          dot.x = Math.max(Math.min(dot.x, canvas.width), 0);
+          dot.y = Math.max(Math.min(dot.y, canvas.height), 0);
+        }
+
+        requestAnimationFrame(update);
+      }
+
+      // Hide the start menu
+      startMenu.style.display = 'none';
+
+      // Create random dots with different colors
+      for (let i = 0; i < DOT_COUNT; i++) {
+        dots.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.floor(Math.random() * 11) + 5,
+          color: `rgb(${Math.random() * 256},${Math.random() * 256},${Math.random() * 256})`,
+        });
+      }
+
+      update();
+    }
+
+    function gameOver() {
+      const ctx = canvas.getContext('2d');
+      ctx.font = '36px Arial';
+      ctx.fillStyle = 'white';
+      ctx.fillText('Game Over', canvas.width / 2 - 80, canvas.height / 2);
+    }
+  </script>
+</body>
+</html>
