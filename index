@@ -1,115 +1,358 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Dot Game</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YouTube Mini Player</title>
+  <meta name="description" content="A minimal YouTube player you can host on GitHub Pages. Search and play videos or playlists without visiting youtube.com directly."/>
   <style>
-    canvas {
-      background-color: black;
-      display: block;
-      margin: 0 auto;
+    :root{
+      --bg:#0b1220; --panel:#0f1a32; --panel-2:#0c1730; --ink:#e9eef5; --muted:#a5b1cf;
+      --accent:#f9ba00; --border:#1f2a44; --success:#28a745; --danger:#d43d3d;
+      --radius:16px; --shadow:0 12px 30px rgba(0,0,0,.25);
     }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(135deg,#0b1220 0%,#08101f 35%,#0c1730 100%);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
+    header{position:sticky;top:0;z-index:20;background:rgba(15,26,50,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+    .wrap{max-width:1100px;margin:0 auto;padding:14px 18px}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .brand{font-weight:800;letter-spacing:.2px}
+    .brand b{color:var(--accent)}
+    .search{display:flex;gap:8px;flex:1;min-width:260px}
+    input[type="text"],input[type="url"]{flex:1;background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--ink);outline:none}
+    input::placeholder{color:#93a3c8}
+    .btn{appearance:none;border:1px solid var(--border);background:var(--panel);color:var(--ink);padding:10px 12px;border-radius:12px;cursor:pointer}
+    .btn:hover{filter:brightness(1.05)}
+    .btn.primary{background:var(--accent);border-color:#d5a000;color:#09111f;font-weight:700}
+    .btn.ghost{background:transparent}
+    .tog{display:flex;align-items:center;gap:8px}
+
+    main{display:grid;grid-template-columns:280px 1fr;gap:16px;max-width:1100px;margin:20px auto;padding:0 18px}
+    aside{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
+    aside h3{margin:6px 0 10px 0;font-size:14px;color:var(--muted);letter-spacing:.3px}
+    .fav-list{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto}
+    .fav{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);padding:10px;border-radius:12px}
+    .fav .meta{flex:1}
+    .fav .meta .t{font-weight:600}
+    .fav .meta .s{font-size:12px;color:var(--muted)}
+    .fav .actions{display:flex;gap:6px}
+
+    .player-card{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .player-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border)}
+    .player-grid{padding:12px}
+    .frame{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden}
+    #player{position:absolute;inset:0}
+
+    .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .controls .btn{padding:8px 10px}
+    .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);font-size:12px;color:var(--muted)}
+    .note{font-size:12px;color:var(--muted);margin-top:8px}
+
+    @media (max-width:900px){ main{grid-template-columns:1fr} aside{order:2} }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
-  <div id="startMenu" style="position: absolute; top: 100px; left: 300px; background-color: rgba(0, 0, 0, 0.5); padding: 20px; border: 2px solid white; border-radius: 10px;">
-    <h1 style="color: white; text-align: center;">Dot Game</h1>
-    <button onclick="startGame()" style="display: block; margin: 0 auto;">Start Game</button>
-  </div>
+  <header>
+    <div class="wrap row">
+      <div class="brand">YT<b>Mini</b>Player</div>
+      <form id="searchForm" class="search" autocomplete="off">
+        <input id="searchInput" type="text" placeholder="Search YouTube (plays a search playlist)…" />
+        <button class="btn primary" type="submit">Search</button>
+      </form>
+      <button id="toggleTheme" class="btn ghost" title="Toggle theme">🌗</button>
+    </div>
+  </header>
 
+  <main>
+    <aside>
+      <h3>Quick Load</h3>
+      <div class="row" style="gap:8px;margin-bottom:10px">
+        <input id="urlInput" type="url" placeholder="Paste YouTube URL, video ID, or playlist ID…" />
+        <button id="loadBtn" class="btn">Load</button>
+      </div>
+      <div class="row" style="gap:8px;margin-bottom:10px">
+        <button id="addFavBtn" class="btn">⭐ Save as Favorite</button>
+        <button id="clearFavBtn" class="btn" title="Remove all favorites">🗑️ Clear All</button>
+      </div>
+      <h3>Favorites</h3>
+      <div id="favList" class="fav-list"></div>
+      <p class="note">Favorites are stored in your browser (localStorage). They’ll sync per-device.</p>
+    </aside>
+
+    <section class="player-card">
+      <div class="player-head">
+        <div>
+          <div class="pill" id="status">Idle</div>
+        </div>
+        <div class="row">
+          <button id="loopBtn" class="btn" title="Loop playlist or video">🔁 Loop: Off</button>
+          <button id="captionsBtn" class="btn" title="Toggle captions">🅲 Captions</button>
+          <button id="theaterBtn" class="btn" title="Theater mode">🖼️ Theater</button>
+        </div>
+      </div>
+      <div class="player-grid">
+        <div class="frame"><div id="player"></div></div>
+        <div class="controls">
+          <button class="btn" data-act="play">▶️ Play</button>
+          <button class="btn" data-act="pause">⏸️ Pause</button>
+          <button class="btn" data-act="rew">⏪ -10s</button>
+          <button class="btn" data-act="ff">⏩ +10s</button>
+          <button class="btn" data-act="prev">⏮️ Prev</button>
+          <button class="btn" data-act="next">⏭️ Next</button>
+          <button class="btn" data-act="slower">⟲ Slower</button>
+          <button class="btn" data-act="faster">⟳ Faster</button>
+          <button class="btn" data-act="mute">🔇 Mute</button>
+          <button class="btn" data-act="unmute">🔊 Unmute</button>
+        </div>
+        <p class="note">Tips: Space = play/pause • ←/→ = ±5s • J/K/L = -10/Play/Pause/+10 • Shift+, / Shift+. = speed ± • N/P = next/prev. This is an embed of the official YouTube player (ads/captions are controlled by YouTube).</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Load the YouTube IFrame Player API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    function startGame() {
-      const canvas = document.getElementById('gameCanvas');
-      const ctx = canvas.getContext('2d');
-      const startMenu = document.getElementById('startMenu');
+    // ---- Utilities ----
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
-      const DOT_RADIUS = 5; // Smaller starting dot
-      const PLAYER_RADIUS = 20;
-      const DOT_SPEED = 2;
-      const DOT_COUNT = 50;
+    const STATUS = $('#status');
+    const urlInput = $('#urlInput');
+    const favList = $('#favList');
 
-      const dots = [];
-      const player = {
-        x: canvas.width / 2,
-        y: canvas.height / 2,
-        radius: PLAYER_RADIUS,
-      };
+    const STORAGE_KEY = 'ytmp.favorites.v1';
+    const SETTINGS_KEY = 'ytmp.settings.v1';
 
-      function isCollision(dotRadius) {
-        return player.radius > dotRadius;
-      }
+    let settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    let favorites = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
-      function drawPlayer() {
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'white';
-        ctx.fill();
-        ctx.closePath();
-      }
+    function saveSettings(){ localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
+    function saveFavorites(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites)); renderFavs(); }
 
-      function drawDot(dot) {
-        ctx.beginPath();
-        ctx.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
-        ctx.fillStyle = dot.color;
-        ctx.fill();
-        ctx.closePath();
-      }
+    function setStatus(text){ STATUS.textContent = text; }
 
-      function update() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function parseInputToLoadable(raw){
+      if(!raw) return null;
+      const s = raw.trim();
+      // If it's a bare ID (11 chars) assume video id
+      if(/^[a-zA-Z0-9_-]{11}$/.test(s)) return {kind:'video', id:s};
+      // Playlist id pattern (PL..., LL..., UU..., RD... etc.) usually > 12 chars
+      if(/^[A-Za-z0-9_-]{13,}$/.test(s) && (s.startsWith('PL')||s.startsWith('LL')||s.startsWith('UU')||s.startsWith('RD'))) return {kind:'playlist', id:s};
 
-        // Draw and update player
-        drawPlayer();
-
-        // Check for collisions
-        for (let i = dots.length - 1; i >= 0; i--) {
-          const dot = dots[i];
-          if (isCollision(dot.radius)) {
-            if (player.radius > 5) {
-              dots.splice(i, 1);
-              player.radius += 1;
-            }
-          } else if (player.radius < dot.radius) {
-            // Player loses if they touch a larger dot
-            gameOver();
-            return;
+      try{
+        const u = new URL(s.startsWith('http')? s : 'https://'+s);
+        if(/youtube\.com$|youtu\.be$/.test(u.hostname)){
+          // youtu.be/VIDEO
+          if(u.hostname==='youtu.be'){ return {kind:'video', id: u.pathname.replace('/','')}; }
+          // youtube.com/watch?v=VIDEO&list=PLAYLIST
+          if(u.pathname === '/watch'){
+            const v = u.searchParams.get('v');
+            const list = u.searchParams.get('list');
+            if(list) return {kind:'playlist', id:list};
+            if(v) return {kind:'video', id:v};
+          }
+          // youtube.com/playlist?list=ID
+          if(u.pathname === '/playlist'){
+            const list = u.searchParams.get('list');
+            if(list) return {kind:'playlist', id:list};
           }
         }
+      }catch(e){ /* not a URL */ }
 
-        // Draw and update dots
-        for (const dot of dots) {
-          drawDot(dot);
-          dot.x += Math.random() * 2 * DOT_SPEED - DOT_SPEED;
-          dot.y += Math.random() * 2 * DOT_SPEED - DOT_SPEED;
-          dot.x = Math.max(Math.min(dot.x, canvas.width), 0);
-          dot.y = Math.max(Math.min(dot.y, canvas.height), 0);
+      // Fallback: treat as search query
+      return {kind:'search', q:s};
+    }
+
+    function cleanTitle(s){
+      return s.length>60? s.slice(0,57)+'…' : s;
+    }
+
+    function renderFavs(){
+      favList.innerHTML = '';
+      favorites.forEach((f, idx)=>{
+        const el = document.createElement('div');
+        el.className = 'fav';
+        el.innerHTML = `
+          <div class="meta">
+            <div class="t">${cleanTitle(f.title || f.id || f.q)}</div>
+            <div class="s">${f.kind}</div>
+          </div>
+          <div class="actions">
+            <button class="btn" data-act="play" data-idx="${idx}">Play</button>
+            <button class="btn" data-act="del" data-idx="${idx}">Del</button>
+          </div>`;
+        favList.appendChild(el);
+      });
+    }
+
+    // ---- Theme ----
+    const toggleThemeBtn = $('#toggleTheme');
+    function applyTheme(){
+      const dark = settings.theme !== 'light';
+      document.documentElement.style.colorScheme = dark? 'dark':'light';
+    }
+    toggleThemeBtn.addEventListener('click',()=>{
+      settings.theme = (settings.theme==='light'? 'dark':'light');
+      saveSettings(); applyTheme();
+    });
+    applyTheme();
+
+    // ---- Player ----
+    let player; let loopOn = !!settings.loop; let captionsOn = !!settings.captions; let theaterOn = !!settings.theater;
+
+    window.onYouTubeIframeAPIReady = function(){
+      player = new YT.Player('player', {
+        height: '100%', width: '100%',
+        playerVars: {
+          autoplay: 0, playsinline: 1, rel: 0, modestbranding: 1, iv_load_policy: 3,
+          cc_load_policy: captionsOn?1:0
+        },
+        events: {
+          onReady: onReady, onStateChange: onState
         }
-
-        requestAnimationFrame(update);
-      }
-
-      // Hide the start menu
-      startMenu.style.display = 'none';
-
-      // Create random dots with different colors
-      for (let i = 0; i < DOT_COUNT; i++) {
-        dots.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          radius: Math.floor(Math.random() * 11) + 5,
-          color: `rgb(${Math.random() * 256},${Math.random() * 256},${Math.random() * 256})`,
-        });
-      }
-
-      update();
+      });
     }
 
-    function gameOver() {
-      const ctx = canvas.getContext('2d');
-      ctx.font = '36px Arial';
-      ctx.fillStyle = 'white';
-      ctx.fillText('Game Over', canvas.width / 2 - 80, canvas.height / 2);
+    function onReady(){
+      setStatus('Ready');
+      renderFavs();
+      // If there is a hash or ?q param, load it
+      const params = new URLSearchParams(location.search);
+      const q = params.get('q');
+      if(q){ load({kind:'search', q}); $('#searchInput').value = q; }
+      else if(location.hash){
+        const p = parseInputToLoadable(decodeURIComponent(location.hash.slice(1)));
+        if(p) load(p);
+      }
     }
+
+    function onState(e){
+      const s = e.data;
+      if(s === YT.PlayerState.ENDED && loopOn){
+        // loop playlist or restart video
+        try{
+          const pl = player.getPlaylist();
+          if(pl && pl.length>1){ player.nextVideo(); }
+          else { player.seekTo(0); player.playVideo(); }
+        }catch(err){ player.seekTo(0); player.playVideo(); }
+      }
+      const labels = {
+        [YT.PlayerState.UNSTARTED]: 'Unstarted',
+        [YT.PlayerState.ENDED]: 'Ended',
+        [YT.PlayerState.PLAYING]: 'Playing',
+        [YT.PlayerState.PAUSED]: 'Paused',
+        [YT.PlayerState.BUFFERING]: 'Buffering',
+        [YT.PlayerState.CUED]: 'Cued'
+      };
+      setStatus(labels[s] || 'Idle');
+    }
+
+    function load(spec){
+      if(!player) return;
+      if(spec.kind==='video'){
+        player.loadVideoById({videoId: spec.id});
+        location.hash = encodeURIComponent(spec.id);
+      } else if(spec.kind==='playlist'){
+        player.loadPlaylist({list: spec.id, listType:'playlist', index: 0});
+        location.hash = encodeURIComponent(spec.id);
+      } else if(spec.kind==='search'){
+        // Trick: play a dynamic search playlist using the embed API
+        player.loadPlaylist({listType:'search', list: spec.q});
+        const params = new URLSearchParams(location.search);
+        params.set('q', spec.q);
+        history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
+      }
+    }
+
+    // ---- UI wiring ----
+    $('#loadBtn').addEventListener('click', ()=>{
+      const spec = parseInputToLoadable(urlInput.value);
+      if(spec) load(spec);
+    });
+
+    $('#searchForm').addEventListener('submit',(e)=>{
+      e.preventDefault();
+      const q = $('#searchInput').value.trim();
+      if(q) load({kind:'search', q});
+    });
+
+    $('#addFavBtn').addEventListener('click',()=>{
+      const val = urlInput.value.trim() || $('#searchInput').value.trim();
+      if(!val) return alert('Enter a URL / ID / search first.');
+      const spec = parseInputToLoadable(val);
+      const title = prompt('Name this favorite:', (spec.kind==='search'? `Search: ${spec.q}` : (spec.id || val)) ) || val;
+      favorites.unshift({...spec, title});
+      saveFavorites();
+    });
+
+    $('#clearFavBtn').addEventListener('click',()=>{
+      if(confirm('Remove ALL favorites?')){ favorites = []; saveFavorites(); }
+    });
+
+    favList.addEventListener('click',(e)=>{
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      const idx = +btn.dataset.idx;
+      if(btn.dataset.act==='del'){ favorites.splice(idx,1); saveFavorites(); }
+      if(btn.dataset.act==='play'){ load(favorites[idx]); }
+    });
+
+    $$('.controls .btn').forEach(b=> b.addEventListener('click',()=>{
+      const act = b.dataset.act;
+      if(!player) return;
+      if(act==='play') player.playVideo();
+      if(act==='pause') player.pauseVideo();
+      if(act==='rew') player.seekTo(Math.max(0, player.getCurrentTime()-10), true);
+      if(act==='ff') player.seekTo(player.getCurrentTime()+10, true);
+      if(act==='prev') try{ player.previousVideo(); }catch(e){}
+      if(act==='next') try{ player.nextVideo(); }catch(e){}
+      if(act==='slower') player.setPlaybackRate(Math.max(.25, player.getPlaybackRate()-0.25));
+      if(act==='faster') player.setPlaybackRate(Math.min(2, player.getPlaybackRate()+0.25));
+      if(act==='mute') player.mute();
+      if(act==='unmute') player.unMute();
+    }));
+
+    // Loop toggle
+    const loopBtn = $('#loopBtn');
+    function syncLoop(){ loopBtn.textContent = `🔁 Loop: ${loopOn? 'On':'Off'}`; }
+    loopBtn.addEventListener('click',()=>{ loopOn = !loopOn; settings.loop = loopOn; saveSettings(); syncLoop(); });
+    syncLoop();
+
+    // Captions toggle
+    const captionsBtn = $('#captionsBtn');
+    captionsBtn.addEventListener('click',()=>{
+      captionsOn = !captionsOn; settings.captions = captionsOn; saveSettings();
+      try{ player.loadModule('captions'); player.setOption('captions', 'track', captionsOn? {} : null); }catch(e){}
+      alert('Caption availability depends on each video.');
+    });
+
+    // Theater mode toggle
+    const theaterBtn = $('#theaterBtn');
+    function applyTheater(){
+      const frame = document.querySelector('.frame');
+      if(theaterOn){ frame.style.aspectRatio = '21/9'; theaterBtn.classList.add('active'); }
+      else { frame.style.aspectRatio = '16/9'; theaterBtn.classList.remove('active'); }
+    }
+    theaterBtn.addEventListener('click',()=>{ theaterOn = !theaterOn; settings.theater = theaterOn; saveSettings(); applyTheater(); });
+    applyTheater();
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown',(e)=>{
+      if(!player) return;
+      const tag = (e.target.tagName||'').toLowerCase();
+      if(tag==='input' || tag==='textarea') return; // don't hijack typing
+      if(e.code==='Space'){ e.preventDefault(); const s = player.getPlayerState(); (s===1? player.pauseVideo(): player.playVideo()); }
+      if(e.code==='ArrowLeft'){ player.seekTo(Math.max(0, player.getCurrentTime()-5), true); }
+      if(e.code==='ArrowRight'){ player.seekTo(player.getCurrentTime()+5, true); }
+      if(e.key==='j'){ player.seekTo(Math.max(0, player.getCurrentTime()-10), true); }
+      if(e.key==='k'){ const s = player.getPlayerState(); (s===1? player.pauseVideo(): player.playVideo()); }
+      if(e.key==='l'){ player.seekTo(player.getCurrentTime()+10, true); }
+      if(e.shiftKey && e.key===','){ player.setPlaybackRate(Math.max(.25, player.getPlaybackRate()-0.25)); }
+      if(e.shiftKey && e.key==='.'){ player.setPlaybackRate(Math.min(2, player.getPlaybackRate()+0.25)); }
+      if(e.key.toLowerCase()==='n'){ try{ player.nextVideo(); }catch(e){} }
+      if(e.key.toLowerCase()==='p'){ try{ player.previousVideo(); }catch(e){} }
+    });
   </script>
 </body>
 </html>
