@@ -1,0 +1,82 @@
+[
+  {
+    "id": "pol-trump-fed-cook",
+    "title": "Trump move to oust Fed governor jolts markets; Cook says she won’t leave",
+    "summary": "President Trump said he fired Fed Governor Lisa Cook. Cook says the president can’t remove her and plans legal action. Investors reacted: the dollar slipped and markets turned cautious as traders bet on a September rate cut.",
+    "category": "Politics",
+    "published_at": "2025-08-26",
+    "source_name": "Reuters, AP",
+    "source_url": "https://www.reuters.com/world/china/global-markets-global-markets-2025-08-26/",
+    "image": "images/politics.png"
+  },
+  {
+    "id": "world-iran-e3-geneva",
+    "title": "Iran and European powers meet as sanctions ‘snapback’ threat looms",
+    "summary": "France, Britain and Germany are pressing Iran in Geneva to restore inspections and rein in enrichment before an Oct. 18 deadline or face restored UN sanctions. No direct U.S.-Iran talks.",
+    "category": "World",
+    "published_at": "2025-08-26",
+    "source_name": "Reuters",
+    "source_url": "https://www.reuters.com/world/middle-east/iran-european-powers-meet-geneva-threat-sanctions-looms-large-2025-08-26/",
+    "image": "images/world.png"
+  },
+  {
+    "id": "sci-nasa-tomex",
+    "title": "NASA to launch TOMEX+ rockets tonight; colorful trails may be visible",
+    "summary": "NASA targets 10:30 p.m.–3:30 a.m. ET to launch three sounding rockets from Wallops. The releases may create colorful vapor trails as scientists study winds high in the atmosphere.",
+    "category": "Science",
+    "published_at": "2025-08-26",
+    "source_name": "NASA",
+    "source_url": "https://www.nasa.gov/blogs/wallops/2025/08/26/nasa-sounding-rocket-mission-targeting-aug-26-launch-attempt/",
+    "image": "images/science.png"
+  },
+  {
+    "id": "tech-youtube-hype",
+    "title": "YouTube’s ‘Hype’ tool goes global to boost rising creators",
+    "summary": "YouTube is expanding its Hype feature worldwide, letting communities spotlight smaller channels to help them grow.",
+    "category": "Tech",
+    "published_at": "2025-08-26",
+    "source_name": "TechCrunch",
+    "source_url": "https://techcrunch.com/2025/08/26/youtubes-hype-feature-that-boosts-smaller-creators-launches-globally/",
+    "image": "images/tech.png"
+  },
+  {
+    "id": "tech-spotify-dms",
+    "title": "Spotify adds in‑app messages to share music and podcasts",
+    "summary": "Spotify is rolling out direct messages in select markets so people can share tracks, podcasts and audiobooks without leaving the app.",
+    "category": "Tech",
+    "published_at": "2025-08-26",
+    "source_name": "The Verge",
+    "source_url": "https://www.theverge.com/news/765771/spotify-messages-dms-audio-sharing-feature",
+    "image": "images/tech.png"
+  },
+  {
+    "id": "biz-frontier-planetary",
+    "title": "Frontier buys $31M in ocean carbon removal from Planetary",
+    "summary": "Frontier, backed by major tech firms, agreed to purchase 115,000+ tons of carbon removal from Planetary, which uses ocean alkalinity enhancement to lock away CO₂.",
+    "category": "Business",
+    "published_at": "2025-08-26",
+    "source_name": "TechCrunch",
+    "source_url": "https://techcrunch.com/2025/08/26/frontier-buys-31m-worth-of-antacids-for-the-ocean/",
+    "image": "images/business.png"
+  },
+  {
+    "id": "health-screwworm-md",
+    "title": "Maryland confirms rare screwworm infection tied to travel; patient recovered",
+    "summary": "Officials reported a rare New World screwworm case in a Maryland traveler. Risk to the public is low, and USDA is scaling up prevention and monitoring along the border.",
+    "category": "Health",
+    "published_at": "2025-08-26",
+    "source_name": "Reuters, USDA APHIS",
+    "source_url": "https://www.reuters.com/business/healthcare-pharmaceuticals/us-screwworm-patient-recovered-maryland-says-ranchers-criticize-secrecy-2025-08-25/",
+    "image": "images/health.png"
+  },
+  {
+    "id": "sports-usopen-venus",
+    "title": "US Open: Venus Williams out in first round; top seeds set for day’s action",
+    "summary": "Venus Williams lost in three sets to Karolina Muchova. Play continues with top names including Iga Świątek and Jannik Sinner on the schedule.",
+    "category": "Sports",
+    "published_at": "2025-08-26",
+    "source_name": "Reuters, ESPN",
+    "source_url": "https://www.reuters.com/sports/tennis/venus-exits-us-open-first-round-despite-valiant-display-against-muchova-2025-08-26/",
+    "image": "images/sports.png"
+  }
+]
