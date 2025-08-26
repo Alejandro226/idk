@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>QuickBrief • Real news, simply told</title>
+<link rel="icon" href="images/logo.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<header class="site-header">
+  <div class="brand">
+    <img src="images/logo.png" alt="QuickBrief logo" class="logo"/>
+    <div class="titles">
+      <h1>QuickBrief</h1>
+      <p>Real news, simply told</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button id="themeToggle" aria-label="Toggle theme">🌓</button>
+  </div>
+</header>
+<section class="hero">
+  <img src="images/banner.png" alt="QuickBrief banner"/>
+  <div class="hero-overlay">
+    <h2>Today’s top stories</h2>
+    <p id="updatedStamp"></p>
+    <div class="controls">
+      <input id="searchInput" type="search" placeholder="Search headlines"/>
+      <select id="categorySelect">
+        <option value="All">All</option>
+        <option value="Politics">Politics</option>
+        <option value="World">World</option>
+        <option value="Business">Business</option>
+        <option value="Tech">Tech</option>
+        <option value="Science">Science</option>
+        <option value="Health">Health</option>
+        <option value="Sports">Sports</option>
+      </select>
+      <button id="refreshBtn">Refresh</button>
+    </div>
+  </div>
+</section>
+<main class="container">
+  <section id="topStory" class="top-story"></section>
+  <section id="newsGrid" class="news-grid"></section>
+</main>
+<footer class="site-footer">
+  <p>&copy; 2025 QuickBrief</p>
+  <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
